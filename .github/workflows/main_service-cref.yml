@@ -1,3 +1,7 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+# More info on Python, GitHub Actions, and Azure Functions: https://aka.ms/python-webapps-actions
+
 name: Build and deploy Python project to Azure Function App - service-cref
 
 on:
@@ -7,14 +11,14 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' 
-  PYTHON_VERSION: '3.11'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
+  PYTHON_VERSION: '3.11' # set this to the python version to use (supports 3.6, 3.7, 3.8)
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Checkout repository
@@ -25,27 +29,33 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Instalar dependências no formato esperado pela Azure
+      - name: Create and start virtual environment
         run: |
-          mkdir -p .python_packages/lib/site-packages
-          pip install -r requirements.txt -t .python_packages/lib/site-packages
+          python -m venv venv
+          source venv/bin/activate
 
-      - name: Zipar projeto com dependências no formato esperado pela Azure
-        run: |
-          zip -r release.zip . -x "venv/*"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Optional: Add step to run tests here
+
+      - name: Zip artifact for deployment
+        run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: release.zip
+          path: |
+            release.zip
+            !venv/
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write
-      contents: read
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
@@ -59,9 +69,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D912504DF860456A87C0D906578E6114 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F56EAA7C02A44AB187415434949C396E }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8A25B05671BA4A858FFC1BB1760508AD }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_90EDE7668EBB477386510064FD4CEC6D }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_3999E79F601D49AF9936533137C5AD55 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_02BC51C98603485D863FDF8A1A0F97DD }}
 
       - name: 'Deploy to Azure Functions'
         uses: Azure/functions-action@v1

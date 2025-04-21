@@ -1,2 +1,2 @@
 azure-functions
-playwright==1.43.0
+playwright

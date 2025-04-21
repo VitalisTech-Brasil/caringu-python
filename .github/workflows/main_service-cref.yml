@@ -27,8 +27,12 @@ jobs:
 
       - name: Instalar dependências e navegadores no formato esperado pela Azure
         run: |
+          pip install -r requirements.txt
           pip install playwright
           python -m playwright install chromium
+
+          mkdir -p .playwright
+          rsync -av ~/.cache/ms-playwright/ .playwright/
 
           mkdir -p .python_packages/lib/site-packages
           pip install -r requirements.txt -t .python_packages/lib/site-packages

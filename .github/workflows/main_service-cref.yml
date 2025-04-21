@@ -30,6 +30,10 @@ jobs:
           mkdir -p .python_packages/lib/site-packages
           pip install -r requirements.txt -t .python_packages/lib/site-packages
 
+      - name: Instalar navegadores do Playwright
+        run: |
+          python -m playwright install --with-deps
+
       - name: Zipar projeto com dependências no formato esperado pela Azure
         run: |
           zip -r release.zip . -x "venv/*"

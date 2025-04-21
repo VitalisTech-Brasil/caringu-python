@@ -1,20 +1,24 @@
-FROM mcr.microsoft.com/azure-functions/python:4-python3.10
+FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy
 
-# Variáveis de ambiente da Azure Function
-ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
-    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+# Cria diretório de trabalho
+WORKDIR /app
+
+# Copia os arquivos do projeto
+COPY . .
+
+# Instala dependências do sistema
+RUN apt-get update && \
+    apt-get install -y wget
 
 # Instala dependências Python
-COPY requirements.txt /
-RUN pip install --upgrade pip && pip install -r /requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# Instala Playwright e navegador
-RUN apt-get update && \
-    apt-get install -y wget && \
-    python -m playwright install chromium && \
-    mkdir /ms-playwright && \
+# Instala navegadores do Playwright
+RUN python -m playwright install chromium
+
+# Opcional: otimização para cache em ambiente serverless
+RUN mkdir /ms-playwright && \
     cp -r /root/.cache/ms-playwright /ms-playwright
 
-# Copia o código da function
-COPY . /home/site/wwwroot
+CMD ["python", "main.py"]

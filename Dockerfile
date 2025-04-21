@@ -16,9 +16,3 @@ RUN pip install --upgrade pip && \
 
 # Instala navegadores do Playwright
 RUN python -m playwright install chromium
-
-# Opcional: otimização para cache em ambiente serverless
-RUN mkdir /ms-playwright && \
-    cp -r /root/.cache/ms-playwright /ms-playwright
-
-CMD ["python", "main.py"]

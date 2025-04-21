@@ -1,61 +1,44 @@
 import azure.functions as func
-import json
-import asyncio
-from playwright.async_api import async_playwright
-import os
-
-def encontrar_chromium_executavel():
-    path_base = os.path.join(os.getcwd(), ".playwright")
-    for nome in os.listdir(path_base):
-        if nome.startswith("chromium-"):
-            return os.path.join(path_base, nome, "chrome-linux", "chrome")
-    raise FileNotFoundError("Chromium não encontrado em .playwright")
+from playwright.sync_api import sync_playwright
 
 
-async def buscar_cref(cref: str):
+def main_teste(req: func.HttpRequest) -> func.HttpResponse:
+    cref_registro = req.params.get('registro')
 
-    executable_path = encontrar_chromium_executavel()
+    if not cref_registro:
+        return func.HttpResponse("Parâmetro 'registro' obrigatório.", status_code=400)
 
-    async with async_playwright() as p:
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
 
-        browser = await p.chromium.launch(
-            headless=True,
-            executable_path=executable_path
-        )
+            url = "https://sistemacref4.com.br/crefonline/SifaOnLineServicosPublicosAction.do?metodo=servicoPublicoProfissionais"
+            page.goto(url)
 
-        page = await browser.new_page()
+            page.fill('#buscaRegistro', cref_registro)
+            page.click("input[value='CONSULTAR']")
 
-        await page.goto(
-            "https://sistemacref4.com.br/crefonline/SifaOnLineServicosPublicosAction.do?metodo=servicoPublicoProfissionais")
-        await page.fill("#buscaRegistro", cref)
-        await page.click("input[value='CONSULTAR']")
-        await page.wait_for_selector(".table-col-15", timeout=5000)
+            page.wait_for_selector('.table-col-15', timeout=10000)
 
-        try:
-            cref_element = await page.query_selector(".table-col-15")
-            nome_element = await page.query_selector(".table-col-75")
+            crefs = page.locator('.table-col-15').all_text_contents()
+            nomes = page.locator('.table-col-75').all_text_contents()
 
-            if cref_element and nome_element:
-                return {
-                    "cref": await cref_element.inner_text(),
-                    "nome": await nome_element.inner_text()
-                }
-            else:
-                return {"mensagem": "Nenhum resultado encontrado."}
-        finally:
-            await browser.close()
+            browser.close()
 
+            resultados = []
+            for cref, nome in zip(crefs, nomes):
+                cref = cref.strip()
+                nome = nome.strip()
 
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    cref = req.params.get('cref') or req.get_json().get('cref')
+                # Ignora cabeçalhos e linhas vazias
+                if cref and nome and cref.upper() != "REGISTRO" and nome.upper() != "NOME":
+                    resultados.append({
+                        "cref": cref,
+                        "nome": nome
+                    })
 
-    if not cref:
-        return func.HttpResponse("Parâmetro 'cref' é obrigatório.", status_code=400)
+            return func.HttpResponse(str(resultados), status_code=200)
 
-    resultado = asyncio.run(buscar_cref(cref))
-
-    return func.HttpResponse(
-        json.dumps(resultado, ensure_ascii=False),
-        mimetype="application/json",
-        status_code=200
-    )
+    except Exception as e:
+        return func.HttpResponse(f"Erro: {str(e)}", status_code=500)

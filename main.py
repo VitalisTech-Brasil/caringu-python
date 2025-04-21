@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
-from playwright.sync_api import sync_playwright
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from playwright.sync_api import sync_playwright
 
 app = FastAPI()
 

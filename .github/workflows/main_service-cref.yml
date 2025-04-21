@@ -25,19 +25,12 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Instalar dependências no formato esperado pela Azure
+      - name: Instalar dependências e navegadores no formato esperado pela Azure
         run: |
           mkdir -p .python_packages/lib/site-packages
           pip install -r requirements.txt -t .python_packages/lib/site-packages
-
-      - name: Instalar Playwright no ambiente global
-        run: |
-          pip install playwright
-
-      - name: Instalar navegadores do Playwright
-        run: |
-          python -m playwright install --with-deps
-
+          python -m playwright install chromium
+          
       - name: Zipar projeto com dependências no formato esperado pela Azure
         run: |
           zip -r release.zip . -x "venv/*"

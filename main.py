@@ -14,7 +14,7 @@ app.add_middleware(
 )
 
 @app.get("/consultar")
-async def consulta_cref(registro: str = None):
+def consulta_cref(registro: str = None):
     if not registro:
         return JSONResponse({"erro": "Parâmetro 'registro' obrigatório."}, status_code=400)
 

@@ -83,5 +83,4 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         )
     finally:
         driver.quit()
-        return None
 

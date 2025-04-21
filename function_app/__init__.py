@@ -3,7 +3,6 @@ import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 import time
 
 
@@ -35,7 +34,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     options.add_argument("--disable-dev-shm-usage")
 
     try:
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver = webdriver.Chrome(executable_path="/usr/local/bin/chromedriver", options=options)
     except Exception as e:
         return func.HttpResponse(
             f"Erro ao iniciar o Chrome: {str(e)}",

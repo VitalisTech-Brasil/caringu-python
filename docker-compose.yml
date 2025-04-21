@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: caringu-python:latest
+    container_name: container-python
+    ports:
+      - "8000:8000"
+    restart: always

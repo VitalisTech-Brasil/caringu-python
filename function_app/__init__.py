@@ -2,7 +2,7 @@ import azure.functions as func
 from playwright.sync_api import sync_playwright
 
 
-def main_teste(req: func.HttpRequest) -> func.HttpResponse:
+def main(req: func.HttpRequest) -> func.HttpResponse:
     cref_registro = req.params.get('registro')
 
     if not cref_registro:
